@@ -11,5 +11,13 @@ public class MappingProfile : Profile
         CreateMap<UserRegisterDto, User>();
         
         CreateMap<User, UserResponseDto>();
+        
+        CreateMap<ProjectCreateDto, Project>();
+        
+        CreateMap<Project, ProjectResponseDto>();
+        
+        CreateMap<TaskCreateDto, Models.Task>();
+        
+        CreateMap<Models.Task, TaskResponseDto>();
     }
 }
