@@ -31,10 +31,37 @@ public class ProjectsController : ControllerBase
     }
     
     [HttpGet]
-    public IActionResult GetAllProjects()
+    public IActionResult GetAllProjects(
+        [FromQuery] string? search,
+        [FromQuery] string? sortBy,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var projects = _context.Projects.ToList();
-        
+        var query = _context.Projects.AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(p => p.Name.ToLower().Contains(search.ToLower()));
+        }
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            query = sortBy.ToLower() switch
+            {
+                "name" => query.OrderBy(p => p.Name),
+                "name_desc" => query.OrderByDescending(p => p.Name),
+                _ => query.OrderBy(p => p.Id)
+            };
+        }
+        else
+        {
+            query = query.OrderBy(p => p.Id);
+        }
+
+        var skip = (page - 1) * pageSize;
+
+        var projects = query.Skip(skip).Take(pageSize).ToList();
+
         var response = _mapper.Map<List<ProjectResponseDto>>(projects);
 
         return Ok(response);
