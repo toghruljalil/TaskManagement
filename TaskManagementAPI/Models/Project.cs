@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace TaskManagementAPI.Models;
+﻿namespace TaskManagementAPI.Models;
 
 public partial class Project
 {

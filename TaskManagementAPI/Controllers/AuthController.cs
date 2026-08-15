@@ -31,6 +31,26 @@ public class AuthController : ControllerBase
         return Ok("İstifadəçi uğurla qeydiyyatdan keçdi.");
     }
     
+    [HttpPost("login")]
+    public IActionResult Login([FromBody] UserLoginDto request)
+    {
+        var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
+        
+        if (user == null)
+        {
+            return BadRequest("İstifadəçi tapılmadı və ya email yanlışdır.");
+        }
+        
+        bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+
+        if (!isPasswordValid)
+        {
+            return BadRequest("Şifrə yanlışdır.");
+        }
+        
+        return Ok(new { message = $"Xoş gəldin, {user.Username}! Giriş uğurludur." });
+    }
+    
     [HttpGet("users")]
     public IActionResult GetAllUsers()
     {
