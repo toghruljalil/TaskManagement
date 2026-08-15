@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.DTOs;
 using TaskManagementAPI.Models; // Sənin Entity-lərin
@@ -95,6 +95,19 @@ public class TasksController : ControllerBase
         
         var response = _mapper.Map<List<TaskResponseDto>>(tasks);
 
+        return Ok(response);
+    }
+
+    [HttpGet("{id}")]
+    public IActionResult GetTaskById(int id)
+    {
+        var task = _context.Tasks.Find(id);
+        if (task == null)
+        {
+            return NotFound("Tapşırıq tapılmadı.");
+        }
+
+        var response = _mapper.Map<TaskResponseDto>(task);
         return Ok(response);
     }
 }

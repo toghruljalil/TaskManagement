@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.DTOs;
 using TaskManagementAPI.Models;
@@ -53,5 +53,36 @@ public class ProjectsController : ControllerBase
         var response = _mapper.Map<ProjectResponseDto>(project);
         
         return Ok(response);
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult UpdateProject(int id, [FromBody] ProjectCreateDto request)
+    {
+        var project = _context.Projects.Find(id);
+        if (project == null)
+        {
+            return NotFound("Layihə tapılmadı.");
+        }
+
+        _mapper.Map(request, project);
+
+        _context.SaveChanges();
+
+        return Ok("Layihə uğurla yeniləndi.");
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult DeleteProject(int id)
+    {
+        var project = _context.Projects.Find(id);
+        if (project == null)
+        {
+            return NotFound("Layihə tapılmadı.");
+        }
+
+        _context.Projects.Remove(project);
+        _context.SaveChanges();
+
+        return Ok("Layihə uğurla silindi.");
     }
 }
