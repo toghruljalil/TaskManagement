@@ -1,5 +1,8 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TaskManagementAPI.DTOs;
 using TaskManagementAPI.Models;
 
@@ -7,6 +10,7 @@ namespace TaskManagementAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class ProjectsController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -19,19 +23,26 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult CreateProject([FromBody] ProjectCreateDto request)
+    public async Task<IActionResult> CreateProject([FromBody] ProjectCreateDto request)
     {
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdString, out int userId))
+        {
+            return Unauthorized("İstifadəçi sessiyası etibarsızdır.");
+        }
+
         var newProject = _mapper.Map<Project>(request);
-        
-        _context.Projects.Add(newProject);
-        _context.SaveChanges();
+        newProject.CreatedById = userId;
+
+        await _context.Projects.AddAsync(newProject);
+        await _context.SaveChangesAsync();
         
         var response = _mapper.Map<ProjectResponseDto>(newProject);
         return Ok(response);
     }
     
     [HttpGet]
-    public IActionResult GetAllProjects(
+    public async Task<IActionResult> GetAllProjects(
         [FromQuery] string? search,
         [FromQuery] string? sortBy,
         [FromQuery] int page = 1,
@@ -39,7 +50,7 @@ public class ProjectsController : ControllerBase
     {
         var query = _context.Projects.AsQueryable();
 
-        if (!string.IsNullOrEmpty(search))
+        if (!string.IsNullOrWhiteSpace(search))
         {
             query = query.Where(p => p.Name.ToLower().Contains(search.ToLower()));
         }
@@ -59,18 +70,16 @@ public class ProjectsController : ControllerBase
         }
 
         var skip = (page - 1) * pageSize;
-
-        var projects = query.Skip(skip).Take(pageSize).ToList();
+        var projects = await query.Skip(skip).Take(pageSize).ToListAsync();
 
         var response = _mapper.Map<List<ProjectResponseDto>>(projects);
-
         return Ok(response);
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetProjectById(int id)
+    public async Task<IActionResult> GetProjectById(int id)
     {
-        var project = _context.Projects.Find(id);
+        var project = await _context.Projects.FindAsync(id);
         
         if (project == null)
         {
@@ -78,37 +87,35 @@ public class ProjectsController : ControllerBase
         }
         
         var response = _mapper.Map<ProjectResponseDto>(project);
-        
         return Ok(response);
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateProject(int id, [FromBody] ProjectCreateDto request)
+    public async Task<IActionResult> UpdateProject(int id, [FromBody] ProjectCreateDto request)
     {
-        var project = _context.Projects.Find(id);
+        var project = await _context.Projects.FindAsync(id);
         if (project == null)
         {
             return NotFound("Layihə tapılmadı.");
         }
 
         _mapper.Map(request, project);
-
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         return Ok("Layihə uğurla yeniləndi.");
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteProject(int id)
+    public async Task<IActionResult> DeleteProject(int id)
     {
-        var project = _context.Projects.Find(id);
+        var project = await _context.Projects.FindAsync(id);
         if (project == null)
         {
             return NotFound("Layihə tapılmadı.");
         }
 
         _context.Projects.Remove(project);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         return Ok("Layihə uğurla silindi.");
     }

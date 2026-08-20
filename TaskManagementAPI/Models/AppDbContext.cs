@@ -40,9 +40,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
+            
             entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .HasDefaultValueSql("'Todo'::character varying");
+                .HasDefaultValue(TaskStatusEnum.ToDo);
+            
             entity.Property(e => e.Title).HasMaxLength(150);
 
             entity.HasOne(d => d.AssignedToUser).WithMany(p => p.Tasks)

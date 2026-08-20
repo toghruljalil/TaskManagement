@@ -10,7 +10,4 @@ public class ProjectCreateDto
 
     [MaxLength(500, ErrorMessage = "Təsvir ən çox 500 simvol ola bilər.")]
     public string Description { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Yaradan istifadəçinin ID-si mütləqdir.")]
-    public int CreatedById { get; set; }
 }

@@ -12,7 +12,7 @@ public class TaskCreateDto
     public string Description { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Status mütləq seçilməlidir.")]
-    public string Status { get; set; } = string.Empty;
+    public TaskStatusEnum Status { get; set; }
 
     [Required(ErrorMessage = "Layihə ID-si mütləqdir.")]
     public int ProjectId { get; set; }
